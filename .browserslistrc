@@ -1,0 +1,8 @@
+last 2 versions
+> 0.5%
+not dead
+Chrome >= 91
+Firefox >= 90
+Safari >= 15
+not ie 11 # for Edge 18 support
+
