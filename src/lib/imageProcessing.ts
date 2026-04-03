@@ -1,8 +1,9 @@
+import { removeBackground } from "@imgly/background-removal";
 import { supabase } from "@/integrations/supabase/client";
 
 /** Standard passport photo dimensions at 300 DPI */
-export const PASSPORT_WIDTH = 413; // 35mm at 300 DPI
-export const PASSPORT_HEIGHT = 531; // 45mm at 300 DPI
+export const PASSPORT_WIDTH = 430; // 35mm at 300 DPI
+export const PASSPORT_HEIGHT = 550; // 45mm at 300 DPI
 
 /** Country-specific passport templates with dimensions in pixels at 300 DPI */
 export interface PassportTemplate {
@@ -87,14 +88,13 @@ function getFileSignature(file: File): string {
 }
 
 /**
- * Removes the background from an image using the remove.bg API via edge function.
- * Includes client-side caching and user-friendly rate limit handling.
+ * Removes the background from an image entirely in the browser using @imgly/background-removal.
+ * No API key required.
  */
 export async function removeImageBackground(
   imageFile: File,
   onProgress?: (progress: number) => void
 ): Promise<string> {
-  // Check client cache first
   const sig = getFileSignature(imageFile);
   const cached = clientCache.get(sig);
   if (cached) {
@@ -103,64 +103,28 @@ export async function removeImageBackground(
     return cached;
   }
 
-  console.log("[BG Removal] Normalizing image to PNG...");
-  onProgress?.(10);
+  console.log("[BG Removal] Starting client-side background removal...");
+  onProgress?.(5);
 
-  const pngBlob = await normalizeImageToPng(imageFile);
-  const pngFile = new File([pngBlob], "photo.png", { type: "image/png" });
+  try {
+    const blob = await removeBackground(imageFile, {
+      progress: (key: string, current: number, total: number) => {
+        if (total > 0) {
+          const pct = Math.round((current / total) * 90) + 5;
+          onProgress?.(Math.min(pct, 95));
+        }
+      },
+    });
 
-  onProgress?.(20);
-  console.log("[BG Removal] Sending image to remove.bg API...");
-
-  const formData = new FormData();
-  formData.append("image_file", pngFile);
-
-  onProgress?.(30);
-
-  const { data: { session } } = await supabase.auth.getSession();
-
-  const projectUrl = import.meta.env.VITE_SUPABASE_URL;
-  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-  const response = await fetch(`${projectUrl}/functions/v1/remove-bg`, {
-    method: "POST",
-    headers: {
-      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-      apikey: anonKey,
-    },
-    body: formData,
-  });
-
-  onProgress?.(70);
-
-  if (!response.ok) {
-    let errorMsg = `Background removal failed (${response.status})`;
-    let retryable = false;
-    try {
-      const errorData = await response.json();
-      errorMsg = errorData.error || errorMsg;
-      retryable = errorData.retryable === true;
-    } catch {
-      // response wasn't JSON
-    }
-
-    if (response.status === 429 || retryable) {
-      throw new Error(
-        "The background removal service is temporarily busy. Please wait a moment and try again."
-      );
-    }
-    throw new Error(errorMsg);
+    const blobUrl = URL.createObjectURL(blob);
+    clientCache.set(sig, blobUrl);
+    onProgress?.(100);
+    console.log("[BG Removal] Success, result size:", blob.size, "bytes");
+    return blobUrl;
+  } catch (err) {
+    console.error("[BG Removal] Failed:", err);
+    throw new Error("Background removal failed. Please try again with a different image.");
   }
-
-  const blob = await response.blob();
-  const blobUrl = URL.createObjectURL(blob);
-
-  // Cache the result
-  clientCache.set(sig, blobUrl);
-
-  onProgress?.(100);
-  console.log("[BG Removal] Success, received PNG blob:", blob.size, "bytes");
-  return blobUrl;
 }
 
 /**
@@ -271,7 +235,7 @@ export async function compositePassportPhoto(options: {
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
-
+  
   if (backgroundImageUrl) {
     const bgImg = await loadImage(backgroundImageUrl);
     const bgScale = Math.max(width / bgImg.width, height / bgImg.height);
@@ -294,7 +258,6 @@ export async function compositePassportPhoto(options: {
   return canvas.toDataURL("image/png");
 }
 
-
 /**
  * Generates a printable sheet with multiple passport photos in a configurable grid.
  * Fully customizable margins and border line. Supports custom A4 page border.
@@ -306,10 +269,10 @@ export async function generatePrintSheet(
   rows: number,
   cols: number,
   interPhotoGap: number = 10,
-  topMargin: number = 150,
-  bottomMargin: number = 150,
-  leftMargin: number = 150,
-  rightMargin: number = 150,
+  topMargin: number = 80,
+  bottomMargin: number = 80,
+  leftMargin: number = 80,
+  rightMargin: number = 80,
   pageBorderWidth: number = 8,
   pageBorderColor: string = "#CBD5E1"
 ): Promise<string> {
@@ -326,13 +289,8 @@ export async function generatePrintSheet(
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, A4_WIDTH, A4_HEIGHT);
 
-  // Custom page border (around entire A4)
-  ctx.strokeStyle = pageBorderColor;
-  ctx.lineWidth = pageBorderWidth;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.setLineDash([]);
-  ctx.strokeRect(pageBorderWidth/2, pageBorderWidth/2, A4_WIDTH - pageBorderWidth, A4_HEIGHT - pageBorderWidth);
+  // No page border
+
 
   // Content area
   const contentWidth = A4_WIDTH - leftMargin - rightMargin;
@@ -390,3 +348,4 @@ export function downloadDataUrl(dataUrl: string, filename: string) {
   link.click();
   document.body.removeChild(link);
 }
+

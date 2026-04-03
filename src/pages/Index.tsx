@@ -382,7 +382,7 @@ const Index = () => {
                   </p>
                   <p>
                     <span className="font-medium text-foreground">Format:</span> PNG
-                  </p>
+                  </p>npm 
                   <p>
                     <span className="font-medium text-foreground">Template:</span>{" "}
                     {template.name}

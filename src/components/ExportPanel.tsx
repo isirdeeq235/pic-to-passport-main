@@ -36,10 +36,10 @@ const ExportPanel = ({
   const [rows, setRows] = useState(2);
   const [cols, setCols] = useState(2);
   const [gap, setGap] = useState(10);
-  const [topMargin, setTopMargin] = useState(150);
-  const [bottomMargin, setBottomMargin] = useState(150);
-  const [leftMargin, setLeftMargin] = useState(150);
-  const [rightMargin, setRightMargin] = useState(150);
+  const [topMargin, setTopMargin] = useState(80);
+  const [bottomMargin, setBottomMargin] = useState(80);
+  const [leftMargin, setLeftMargin] = useState(80);
+  const [rightMargin, setRightMargin] = useState(80);
   const [pageBorderWidth, setPageBorderWidth] = useState(8);
   const [pageBorderColor, setPageBorderColor] = useState("#CBD5E1");
 
