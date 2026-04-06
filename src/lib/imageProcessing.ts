@@ -343,6 +343,35 @@ if (pageBorderWidth > 0) {
 
 
 /**
+ * Generates PDF version of the print sheet using jsPDF.
+ */
+export async function generatePrintSheetPdf(
+  photoDataUrl: string,
+  photoWidth: number,
+  photoHeight: number,
+  rows: number,
+  cols: number,
+  interPhotoGap: number = 20,
+  topMargin: number = 60,
+  bottomMargin: number = 60,
+  leftMargin: number = 60,
+  rightMargin: number = 60,
+  pageBorderWidth: number = 8,
+  pageBorderColor: string = "#CBD5E1"
+): Promise<string> {
+  const { jsPDF } = await import('jspdf');
+  const pngDataUrl = await generatePrintSheet(photoDataUrl, photoWidth, photoHeight, rows, cols, interPhotoGap, topMargin, bottomMargin, leftMargin, rightMargin, pageBorderWidth, pageBorderColor);
+  
+  const doc = new jsPDF({
+    unit: 'px',
+    format: [2480, 3508], // A4 at 300 DPI
+  });
+  
+  doc.addImage(pngDataUrl, 'PNG', 0, 0, 2480, 3508, '', 'FAST');
+  return doc.output('datauristring');
+}
+
+/**
  * Triggers a browser download for a given data URL.
  */
 export function downloadDataUrl(dataUrl: string, filename: string) {

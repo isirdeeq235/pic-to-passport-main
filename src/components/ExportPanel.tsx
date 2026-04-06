@@ -17,7 +17,8 @@ interface ExportPanelProps {
   onDownloadSheet4: () => void;
   onDownloadSheet6: () => void;
   onDownloadCustomSheet: (rows: number, cols: number, gap: number, topMargin: number, bottomMargin: number, leftMargin: number, rightMargin: number, pageBorderWidth: number, pageBorderColor: string) => void;
-  onPreviewSheet: (rows: number, cols: number, gap: number, topMargin: number, bottomMargin, leftMargin: number, rightMargin: number, pageBorderWidth: number, pageBorderColor: string) => Promise<string>;
+  onDownloadCustomSheetPdf: (rows: number, cols: number, gap: number, topMargin: number, bottomMargin: number, leftMargin: number, rightMargin: number, pageBorderWidth: number, pageBorderColor: string) => Promise<void>;
+  onPreviewSheet: (rows: number, cols: number, gap: number, topMargin: number, bottomMargin: number, leftMargin: number, rightMargin: number, pageBorderWidth: number, pageBorderColor: string) => Promise<string>;
   isExporting: boolean;
 }
 
@@ -28,6 +29,7 @@ const ExportPanel = ({
   onDownloadSheet4,
   onDownloadSheet6,
   onDownloadCustomSheet,
+  onDownloadCustomSheetPdf,
   onPreviewSheet,
   isExporting,
 }: ExportPanelProps) => {
@@ -44,6 +46,7 @@ const ExportPanel = ({
   const [pageBorderColor, setPageBorderColor] = useState("#CBD5E1");
 
   const [open, setOpen] = useState(false);
+  const [downloadFormat, setDownloadFormat] = useState<'png' | 'pdf'>('png');
 
 
   const handlePreviewCustom = async () => {
@@ -60,12 +63,20 @@ const ExportPanel = ({
   };
 
 
-  const handleDownloadFromPreview = () => {
-    if (previewUrl) {
-      const link = document.createElement("a");
-      link.href = previewUrl;
-      link.download = `passport-sheet-${rows}x${cols}-gap${gap}px.png`;
-      link.click();
+  const handleDownloadFromPreview = async () => {
+    try {
+      if (downloadFormat === 'pdf') {
+        await onDownloadCustomSheetPdf(rows, cols, gap, topMargin, bottomMargin, leftMargin, rightMargin, pageBorderWidth, pageBorderColor);
+      } else {
+        if (previewUrl) {
+          const link = document.createElement("a");
+          link.href = previewUrl;
+          link.download = `passport-sheet-${rows}x${cols}-${downloadFormat.toUpperCase()}`;
+          link.click();
+        }
+      }
+    } catch (err) {
+      alert('Download failed');
     }
     setOpen(false);
   };
@@ -277,12 +288,31 @@ const ExportPanel = ({
             )}
           </div>
           <DialogFooter className="p-6 pt-2 border-t gap-2">
+            <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+              <span>Format:</span>
+              <Button
+                variant={downloadFormat === 'png' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 px-3"
+                onClick={() => setDownloadFormat('png')}
+              >
+                PNG
+              </Button>
+              <Button
+                variant={downloadFormat === 'pdf' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 px-3"
+                onClick={() => setDownloadFormat('pdf')}
+              >
+                PDF
+              </Button>
+            </div>
+            <Button onClick={handleDownloadFromPreview} disabled={isPreviewing}>
+              <Download className="w-4 h-4 mr-2" />
+              Download Full Sheet ({downloadFormat.toUpperCase()})
+            </Button>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Close
-            </Button>
-            <Button onClick={handleDownloadFromPreview}>
-              <Download className="w-4 h-4 mr-2" />
-              Download Full Sheet
             </Button>
           </DialogFooter>
         </DialogContent>

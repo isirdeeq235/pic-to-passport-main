@@ -13,6 +13,7 @@ import {
   removeImageBackground,
   compositePassportPhoto,
   generatePrintSheet,
+  generatePrintSheetPdf,
   downloadDataUrl,
   detectFacePosition,
   calculateFaceOffset,
@@ -200,6 +201,21 @@ const Index = () => {
       toast.success(`Print sheet (${rows}×${cols} = ${totalPhotos} photos) with custom margins & border downloaded!`);
     } catch {
       toast.error("Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  }, [getCompositeDataUrl, template]);
+
+  const handleDownloadCustomSheetPdf = useCallback(async (rows: number, cols: number, gap: number, topMargin: number, bottomMargin: number, leftMargin: number, rightMargin: number, pageBorderWidth: number, pageBorderColor: string) => {
+    setIsExporting(true);
+    try {
+      const dataUrl = await getCompositeDataUrl();
+      const pdfDataUrl = await generatePrintSheetPdf(dataUrl, template.width, template.height, rows, cols, gap, topMargin, bottomMargin, leftMargin, rightMargin, pageBorderWidth, pageBorderColor);
+      const totalPhotos = rows * cols;
+      downloadDataUrl(pdfDataUrl, `passport-sheet-${rows}x${cols}.pdf`);
+      toast.success(`PDF print sheet (${rows}×${cols} = ${totalPhotos} photos) downloaded!`);
+    } catch {
+      toast.error("PDF export failed");
     } finally {
       setIsExporting(false);
     }
@@ -395,6 +411,7 @@ const Index = () => {
                 onDownloadSheet4={handleDownloadSheet4}
                 onDownloadSheet6={handleDownloadSheet6}
                 onDownloadCustomSheet={handleDownloadCustomSheet}
+                onDownloadCustomSheetPdf={handleDownloadCustomSheetPdf}
                 onPreviewSheet={async (rows, cols, gap, topMargin, bottomMargin, leftMargin, rightMargin, pageBorderWidth, pageBorderColor) => {
                   const dataUrl = await getCompositeDataUrl();
                   return generatePrintSheet(dataUrl, template.width, template.height, rows, cols, gap, topMargin, bottomMargin, leftMargin, rightMargin, pageBorderWidth, pageBorderColor);
