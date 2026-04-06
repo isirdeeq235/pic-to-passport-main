@@ -57,7 +57,8 @@ const CountrySelector = ({ selected, customWidth, customHeight, onCustomWidthCha
                   min="200"
                   max="1000"
                   value={customWidth || 413}
-                  onChange={(e) => onCustomWidthChange?.(parseInt(e.target.value) || 413)}
+                  onChange={(e) => onCustomWidthChange?.(parseInt(e.target.value) || 413
+                    )}
                   className="h-8 text-sm"
                 />
               </div>
@@ -67,14 +68,14 @@ const CountrySelector = ({ selected, customWidth, customHeight, onCustomWidthCha
                   type="number"
                   min="200"
                   max="1200"
-                  value={customHeight || 531}
-                  onChange={(e) => onCustomHeightChange?.(parseInt(e.target.value) || 531)}
+                  value={customHeight || 550}
+                  onChange={(e) => onCustomHeightChange?.(parseInt(e.target.value) || 550)}
                   className="h-8 text-sm"
                 />
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              {customWidth || 413} × {customHeight || 531}px
+              {customWidth || 413} × {customHeight || 550}px
             </p>
           </div>
         )}
