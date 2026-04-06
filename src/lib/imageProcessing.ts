@@ -289,7 +289,12 @@ export async function generatePrintSheet(
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, A4_WIDTH, A4_HEIGHT);
 
-  // No page border
+// Draw A4 page border if enabled (default: 8px)
+if (pageBorderWidth > 0) {
+  ctx.strokeStyle = pageBorderColor;
+  ctx.lineWidth = pageBorderWidth;
+  ctx.strokeRect(0, 0, A4_WIDTH, A4_HEIGHT);
+}
 
 
   // Content area
