@@ -77,14 +77,13 @@ const ExportPanel = ({
                 body { margin: 0; padding: 0; }
                 img { max-width: 100%; height: auto; page-break-inside: avoid; }
               }
-              body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-              img { box-shadow: none; max-height: 90vh; }
-              button { display: none; }
+              body { margin: 0; padding: 0; }
+              img { box-shadow: none; width: 100%; height: auto; }
             </style>
           </head>
           <body>
             <img src="${previewUrl}" alt="A4 Passport Sheet" />
-            <p style="margin-top: 20px; font-size: 14px; color: #666;">300 DPI A4 Sheet - Ready to Print</p>
+
             <script>window.onload = () => window.print(); window.onafterprint = () => window.close();</script>
           </body>
         </html>
