@@ -268,11 +268,11 @@ export async function generatePrintSheet(
   photoHeight: number,
   rows: number,
   cols: number,
-  interPhotoGap: number = 10,
-  topMargin: number = 80,
-  bottomMargin: number = 80,
-  leftMargin: number = 80,
-  rightMargin: number = 80,
+  interPhotoGap: number = 20,
+  topMargin: number = 60,
+  bottomMargin: number = 60,
+  leftMargin: number = 60,
+  rightMargin: number = 60,
   pageBorderWidth: number = 8,
   pageBorderColor: string = "#CBD5E1"
 ): Promise<string> {
