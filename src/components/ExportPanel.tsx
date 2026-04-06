@@ -1,4 +1,4 @@
-import { Download, Printer, Eye } from "lucide-react";
+import { Download, Printer, Eye, FileText } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,36 @@ const ExportPanel = ({
     }
   };
 
+
+  const handlePrintPreview = () => {
+    if (!previewUrl) return;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Print Passport Sheet</title>
+            <style>
+              @media print {
+                body { margin: 0; padding: 0; }
+                img { max-width: 100%; height: auto; page-break-inside: avoid; }
+              }
+              body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+              img { box-shadow: none; max-height: 90vh; }
+              button { display: none; }
+            </style>
+          </head>
+          <body>
+            <img src="${previewUrl}" alt="A4 Passport Sheet" />
+            <p style="margin-top: 20px; font-size: 14px; color: #666;">300 DPI A4 Sheet - Ready to Print</p>
+            <script>window.onload = () => window.print(); window.onafterprint = () => window.close();</script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
 
   const handleDownloadFromPreview = async () => {
     try {
@@ -307,9 +337,13 @@ const ExportPanel = ({
                 PDF
               </Button>
             </div>
+            <Button onClick={handlePrintPreview} disabled={isPreviewing || !previewUrl}>
+              <Printer className="w-4 h-4 mr-2" />
+              Print Sheet
+            </Button>
             <Button onClick={handleDownloadFromPreview} disabled={isPreviewing}>
               <Download className="w-4 h-4 mr-2" />
-              Download Full Sheet ({downloadFormat.toUpperCase()})
+              Download ({downloadFormat.toUpperCase()})
             </Button>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Close
