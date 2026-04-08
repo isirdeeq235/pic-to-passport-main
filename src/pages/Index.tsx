@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
-import { Camera, ArrowRight, ArrowLeft, Loader2, ZoomIn, ZoomOut, Eye, EyeOff, Focus } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Camera, ArrowRight, ArrowLeft, Loader2, ZoomIn, ZoomOut, Eye, EyeOff, Focus, Download } from "lucide-react";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import StepIndicator from "@/components/StepIndicator";
@@ -22,7 +23,6 @@ import {
   PASSPORT_TEMPLATES,
 } from "@/lib/imageProcessing";
 
-
 const Index = () => {
   const [step, setStep] = useState(0);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
@@ -40,11 +40,12 @@ const Index = () => {
   const [showGuides, setShowGuides] = useState(true);
   const [isAutoAligning, setIsAutoAligning] = useState(false);
 
+  const { isInstallable, installPWA } = usePWAInstall();
+
   const [customWidth, setCustomWidth] = useState(413);
   const [customHeight, setCustomHeight] = useState(531);
-  
-  const template = getPassportTemplate(country, customWidth, customHeight);
 
+  const template = getPassportTemplate(country, customWidth, customHeight);
 
   /** Auto-detect face and center it */
   const handleAutoAlign = useCallback(async () => {
@@ -175,7 +176,6 @@ const Index = () => {
     }
   }, [getCompositeDataUrl, template]);
 
-
   const handleDownloadSheet6 = useCallback(async () => {
     setIsExporting(true);
     try {
@@ -189,7 +189,6 @@ const Index = () => {
       setIsExporting(false);
     }
   }, [getCompositeDataUrl, template]);
-
 
   const handleDownloadCustomSheet = useCallback(async (rows: number, cols: number, gap: number, topMargin: number, bottomMargin: number, leftMargin: number, rightMargin: number, pageBorderWidth: number, pageBorderColor: string) => {
     setIsExporting(true);
@@ -221,8 +220,6 @@ const Index = () => {
     }
   }, [getCompositeDataUrl, template]);
 
-
-
   const handleReset = useCallback(() => {
     setStep(0);
     setOriginalFile(null);
@@ -247,6 +244,12 @@ const Index = () => {
             <span className="text-xs text-muted-foreground hidden sm:block">
               {template.name} · {template.label}
             </span>
+            {isInstallable && (
+              <Button size="sm" onClick={installPWA}>
+                <Download className="w-4 h-4 mr-1" />
+                Install App
+              </Button>
+            )}
             {step >= 1 && (
               <Button variant="ghost" size="sm" onClick={handleReset}>
                 New Photo
@@ -284,7 +287,7 @@ const Index = () => {
           </div>
         )}
 
-{step >= 1 && transparentUrl && (
+        {step >= 1 && transparentUrl && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="lg:col-span-1 space-y-8 order-2 lg:order-1 w-full">
               <BackgroundEditor
@@ -309,7 +312,6 @@ const Index = () => {
                   setOffsetY(0);
                 }}
               />
-
             </div>
 
             <div className="flex-1 flex flex-col items-center gap-4 order-1 lg:order-2">
@@ -398,7 +400,7 @@ const Index = () => {
                   </p>
                   <p>
                     <span className="font-medium text-foreground">Format:</span> PNG
-                  </p>npm 
+                  </p>
                   <p>
                     <span className="font-medium text-foreground">Template:</span>{" "}
                     {template.name}
@@ -418,8 +420,6 @@ const Index = () => {
                 }}
                 isExporting={isExporting}
               />
-
-
             </div>
           </div>
         )}
@@ -429,3 +429,4 @@ const Index = () => {
 };
 
 export default Index;
+
